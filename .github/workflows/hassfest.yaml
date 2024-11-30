@@ -1,0 +1,22 @@
+name: Validate with hassfest
+
+on:
+  push:
+    branches:
+      # Not tuned enough to allow running in master.
+      - '*'         # matches every branch that doesn't contain a '/'
+      - '*/*'       # matches every branch containing a single '/'
+      - '**'        # matches every branch
+      - '!master'   # excludes master
+  pull_request:
+  # Don't run it periodically, as it doesn't work well yet.
+  #schedule:
+  #  - cron:  '0 0 * * *'
+
+jobs:
+  validate:
+    runs-on: "ubuntu-latest"
+    steps:
+        - uses: "actions/checkout@v4"
+        - uses: "home-assistant/actions/hassfest@master"
+
