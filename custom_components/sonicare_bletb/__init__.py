@@ -2,7 +2,7 @@
 
 import logging
 
-from bleak_retry_connector import BleakError, get_device
+from bleak_retry_connector import BleakError
 from sonicare_bletb import SonicareBLETB
 
 from homeassistant.components import bluetooth
@@ -26,7 +26,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     address: str = entry.data[CONF_ADDRESS]
     ble_device = bluetooth.async_ble_device_from_address(
         hass, address.upper(), True
-    ) or await get_device(address)
+    )
     if not ble_device:
         raise ConfigEntryNotReady(
             f"Could not find SonicareBLE toothbrush device with address {address}"
