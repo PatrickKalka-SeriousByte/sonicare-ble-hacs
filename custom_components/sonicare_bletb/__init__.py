@@ -52,6 +52,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         sonicare_ble.set_ble_device_and_advertisement_data(
             service_info.device, service_info.advertisement
         )
+        # TODO: don't put the task in the air…
+        hass.async_create_task(sonicare_ble.initialise())
 
     entry.async_on_unload(
         bluetooth.async_register_callback(
