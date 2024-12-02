@@ -15,13 +15,14 @@ _LOGGER = logging.getLogger(__name__)
 class SonicareBLETBCoordinator(DataUpdateCoordinator[None]):
     """Data coordinator for receiving SonicareBLETB updates."""
 
-    def __init__(self, hass: HomeAssistant, sonicare_ble: SonicareBLETB) -> None:
+    def __init__(self, hass: HomeAssistant, address: str, sonicare_ble: SonicareBLETB) -> None:
         """Initialise the coordinator."""
         super().__init__(
             hass,
             _LOGGER,
             name=DOMAIN,
         )
+        self.address = address
         self._sonicare_ble = sonicare_ble
         sonicare_ble.register_callback(self._async_handle_update)
         sonicare_ble.register_disconnected_callback(self._async_handle_disconnect)
@@ -31,6 +32,7 @@ class SonicareBLETBCoordinator(DataUpdateCoordinator[None]):
     def _async_handle_update(self, state: SonicareBLETBState) -> None:
         """Just trigger the callbacks."""
         _LOGGER.warning("_async_handle_update")
+        self.state = state
         self.connected = True
         self.async_set_updated_data(None)
 

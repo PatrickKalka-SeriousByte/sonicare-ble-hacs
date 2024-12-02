@@ -141,7 +141,6 @@ async def async_setup_entry(
     async_add_entities(
         SonicareBLETBSensor(
             data.coordinator,
-            data.device,
             entry.title,
             description,
         )
@@ -155,20 +154,18 @@ class SonicareBLETBSensor(CoordinatorEntity[SonicareBLETBCoordinator], SensorEnt
     def __init__(
         self,
         coordinator: SonicareBLETBCoordinator,
-        device: SonicareBLETB,
         name: str,
         description: SensorEntityDescription,
     ) -> None:
         """Initialize the sensor."""
         super().__init__(coordinator)
         self._coordinator = coordinator
-        self._device = device
         self._key = description.key
         self.entity_description = description
-        self._attr_unique_id = f"{device.address}_{self._key}"
+        self._attr_unique_id = f"{coordinator.address}_{self._key}"
         self._attr_device_info = DeviceInfo(
             name=name,
-            connections={(dr.CONNECTION_BLUETOOTH, device.address)},
+            connections={(dr.CONNECTION_BLUETOOTH, coordinator.address)},
         )
 
     async def async_added_to_hass(self) -> None:
@@ -180,7 +177,7 @@ class SonicareBLETBSensor(CoordinatorEntity[SonicareBLETBCoordinator], SensorEnt
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
-        self._attr_native_value = getattr(self._device, self._key)
+        self._attr_native_value = self.native_value
         self.async_write_ha_state()
 
     @property
@@ -194,4 +191,4 @@ class SonicareBLETBSensor(CoordinatorEntity[SonicareBLETBCoordinator], SensorEnt
 
     @property
     def native_value(self) -> str | int | None:
-        return getattr(self._device, self._key)
+        return None if self._coordinator.state is None else getattr(self._coordinator.state, self._key)

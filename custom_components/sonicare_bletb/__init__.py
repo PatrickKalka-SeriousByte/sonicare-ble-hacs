@@ -33,7 +33,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         )
     sonicare_ble = SonicareBLETB(ble_device)
 
-    coordinator = SonicareBLETBCoordinator(hass, sonicare_ble)
+    coordinator = SonicareBLETBCoordinator(hass, address, sonicare_ble)
 
     try:
         await sonicare_ble.initialise()
@@ -65,7 +65,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     )
 
     hass.data.setdefault(DOMAIN, {})[entry.entry_id] = SonicareBLETBData(
-        entry.title, sonicare_ble, coordinator
+        entry.title, coordinator
     )
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)

@@ -13,5 +13,4 @@ class SonicareBLETBData:
     """Data for the Sonicare ble toothbrush integration."""
 
     title: str
-    device: SonicareBLETB
     coordinator: SonicareBLETBCoordinator
