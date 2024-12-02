@@ -54,6 +54,11 @@ class SonicareBLETBCoordinator(DataUpdateCoordinator[None]):
         _LOGGER.warning("_async_handle_disconnect")
         self.connected = False
         self.async_update_listeners()
+        if self._sonicare_ble is not None:
+            # We cannot rely on `await self._sonicare_ble.stop()`, because it is called asynchronously.
+            # However, the reconnect is performed just after all disconnect callbacks are processed.
+            # I know that relying on internal property is wrong, but I see no better way to do it.
+            self._sonicare_ble._expected_disconnect = True
         self.hass.async_create_task(self._retry())
 
     async def _retry(self):
