@@ -65,7 +65,7 @@ class SonicareBLETBCoordinator(DataUpdateCoordinator[None]):
         # We want to stop the library from polling, which might spam and consume Bluetooth connection slots
         await self.stop()
         # Let's not ignore advertisments
-        bluetooth.async_rediscover_address(self.hass, self.address)
+        # seems to cause BLE proxy crashes: bluetooth.async_rediscover_address(self.hass, self.address)
 
     async def stop(self):
         # Unregister callbacks in order to prevent memory leak through circular references
