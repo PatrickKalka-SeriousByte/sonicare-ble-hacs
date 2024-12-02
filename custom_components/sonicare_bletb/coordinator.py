@@ -5,6 +5,7 @@ import logging
 from sonicare_bletb import SonicareBLETB, SonicareBLETBState
 
 from homeassistant.core import HomeAssistant, callback
+from homeassistant.components import bluetooth
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
 from .const import DOMAIN
@@ -53,15 +54,15 @@ class SonicareBLETBCoordinator(DataUpdateCoordinator[None]):
         _LOGGER.warning("_async_handle_disconnect")
         self.connected = False
         self.async_update_listeners()
+        self.hass.async_create_task(self._retry())
+
+    async def _retry(self):
+        # We want to stop the library from polling, which might spam and consume Bluetooth connection slots
+        await self.stop()
+        # Let's not ignore advertisments
+        bluetooth.async_rediscover_address(self.hass, self.address)
 
     async def stop(self):
-        if this._sonicare_ble is not None:
-            _LOGGER.warning('sonicare coordinator stopping')
-            await this._sonicare_ble.stop()
-            this._sonicare_ble = None
-        else:
-            _LOGGER.warning('sonicare coordinator not active, nothing to stop')
-
         # Unregister callbacks in order to prevent memory leak through circular references
         if self._unregister_async_handle_update is not None:
             self._unregister_async_handle_update()
@@ -69,3 +70,11 @@ class SonicareBLETBCoordinator(DataUpdateCoordinator[None]):
         if self._unregister_async_handle_disconnect is not None:
             self._unregister_async_handle_disconnect()
             self._unregister_async_handle_disconnect = None
+
+        if self._sonicare_ble is not None:
+            _LOGGER.warning('sonicare coordinator stopping')
+            await self._sonicare_ble.stop()
+            # TODO: release callbacks
+            self._sonicare_ble = None
+        else:
+            _LOGGER.warning('sonicare coordinator not active, nothing to stop')
