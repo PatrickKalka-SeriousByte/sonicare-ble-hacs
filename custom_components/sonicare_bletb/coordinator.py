@@ -15,7 +15,7 @@ _LOGGER = logging.getLogger(__name__)
 class SonicareBLETBCoordinator(DataUpdateCoordinator[None]):
     """Data coordinator for receiving SonicareBLETB updates."""
 
-    def __init__(self, hass: HomeAssistant, address: str, sonicare_ble: SonicareBLETB) -> None:
+    def __init__(self, hass: HomeAssistant, address: str) -> None:
         """Initialise the coordinator."""
         super().__init__(
             hass,
@@ -23,10 +23,19 @@ class SonicareBLETBCoordinator(DataUpdateCoordinator[None]):
             name=DOMAIN,
         )
         self.address = address
+        self.connected = True
+        self.state = None
+        self._sonicare_ble = None
+
+    async def connect(self, ble_device):
+        self.stop()
+        _LOGGER.warning('sonicare coordinator: connecting to %s', ble_device)
+        sonicare_ble = SonicareBLETB(ble_device)
         self._sonicare_ble = sonicare_ble
         sonicare_ble.register_callback(self._async_handle_update)
         sonicare_ble.register_disconnected_callback(self._async_handle_disconnect)
-        self.connected = True
+        await sonicare_ble.initialise()
+
 
     @callback
     def _async_handle_update(self, state: SonicareBLETBState) -> None:
@@ -42,3 +51,11 @@ class SonicareBLETBCoordinator(DataUpdateCoordinator[None]):
         _LOGGER.warning("_async_handle_disconnect")
         self.connected = False
         self.async_update_listeners()
+
+    async def stop(self):
+        if this._sonicare_ble is not None:
+            _LOGGER.warning('sonicare coordinator stopping')
+            await this._sonicare_ble.stop()
+            this._sonicare_ble = None
+        else:
+            _LOGGER.warning('sonicare coordinator not active, nothing to stop')

@@ -24,23 +24,7 @@ _LOGGER = logging.getLogger(__name__)
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up Sonicare BLE toothbrush from a config entry."""
     address: str = entry.data[CONF_ADDRESS]
-    ble_device = bluetooth.async_ble_device_from_address(
-        hass, address.upper(), True
-    )
-    if not ble_device:
-        raise ConfigEntryNotReady(
-            f"Could not find SonicareBLE toothbrush device with address {address}"
-        )
-    sonicare_ble = SonicareBLETB(ble_device)
-
-    coordinator = SonicareBLETBCoordinator(hass, address, sonicare_ble)
-
-    try:
-        await sonicare_ble.initialise()
-    except BleakError as exc:
-        raise ConfigEntryNotReady(
-            f"Could not initialise SonicareBLE toothbrush device with address {address}"
-        ) from exc
+    coordinator = SonicareBLETBCoordinator(hass, address)
 
     @callback
     def _async_update_ble(
@@ -49,11 +33,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     ) -> None:
         """Update from a ble callback."""
         _LOGGER.warning("_async_update_ble")
-        sonicare_ble.set_ble_device_and_advertisement_data(
-            service_info.device, service_info.advertisement
-        )
-        # TODO: don't put the task in the air…
-        hass.async_create_task(sonicare_ble.initialise())
+        ## TODO: don't put the task in the air…
+        hass.async_create_task(coordinator.connect(service_info.device))
 
     entry.async_on_unload(
         bluetooth.async_register_callback(
@@ -73,7 +54,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     async def _async_stop(event: Event) -> None:
         """Close the connection."""
-        await sonicare_ble.stop()
+        await coordinator.stop()
 
     entry.async_on_unload(
         hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STOP, _async_stop)
