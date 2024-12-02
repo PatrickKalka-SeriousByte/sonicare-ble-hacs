@@ -37,6 +37,18 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         hass.async_create_task(coordinator.connect(service_info.device))
 
     entry.async_on_unload(
+        bluetooth.async_track_unavailable(
+            hass,
+            callback = lambda si: _LOGGER.warning("sonicare unavailable: %s; interval = %s / %s",
+                si,
+                bluetooth.async_get_learned_advertising_interval(hass, address),
+                bluetooth.async_get_fallback_availability_interval(hass, address),
+            ),
+            address = address,
+            connectable = True,
+        )
+    )
+    entry.async_on_unload(
         bluetooth.async_register_callback(
             hass,
             _async_update_ble,
