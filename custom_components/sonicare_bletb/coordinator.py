@@ -79,6 +79,7 @@ class SonicareBLETBCoordinator(DataUpdateCoordinator[None]):
         if self._sonicare_ble is not None:
             _LOGGER.warning('sonicare coordinator stopping')
             await self._sonicare_ble.stop()
+            _LOGGER.warning('sonicare coordinator stopped')
             self._sonicare_ble = None
         else:
             _LOGGER.warning('sonicare coordinator not active, nothing to stop')
