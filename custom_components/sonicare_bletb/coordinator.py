@@ -26,14 +26,16 @@ class SonicareBLETBCoordinator(DataUpdateCoordinator[None]):
         self.connected = True
         self.state = None
         self._sonicare_ble = None
+        self._unregister_async_handle_update = None
+        self._unregister_async_handle_disconnect = None
 
     async def connect(self, ble_device):
         self.stop()
         _LOGGER.warning('sonicare coordinator: connecting to %s', ble_device)
         sonicare_ble = SonicareBLETB(ble_device)
         self._sonicare_ble = sonicare_ble
-        sonicare_ble.register_callback(self._async_handle_update)
-        sonicare_ble.register_disconnected_callback(self._async_handle_disconnect)
+        self._unregister_async_handle_update = sonicare_ble.register_callback(self._async_handle_update)
+        self._unregister_async_handle_disconnect = sonicare_ble.register_disconnected_callback(self._async_handle_disconnect)
         await sonicare_ble.initialise()
 
 
@@ -59,3 +61,11 @@ class SonicareBLETBCoordinator(DataUpdateCoordinator[None]):
             this._sonicare_ble = None
         else:
             _LOGGER.warning('sonicare coordinator not active, nothing to stop')
+
+        # Unregister callbacks in order to prevent memory leak through circular references
+        if self._unregister_async_handle_update is not None:
+            self._unregister_async_handle_update()
+            self._unregister_async_handle_update = None
+        if self._unregister_async_handle_disconnect is not None:
+            self._unregister_async_handle_disconnect()
+            self._unregister_async_handle_disconnect = None
