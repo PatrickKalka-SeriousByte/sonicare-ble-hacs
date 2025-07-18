@@ -1,0 +1,22 @@
+{
+    "config": {
+        "abort": {
+            "already_configured": "Gerät ist bereits konfiguriert",
+            "already_in_progress": "Konfigurationsvorgang läuft bereits",
+            "no_devices_found": "Keine Geräte im Netzwerk gefunden",
+            "not_supported": "Gerät wird nicht unterstützt"
+        },
+        "error": {
+            "cannot_connect": "Verbindung fehlgeschlagen",
+            "unknown": "Unerwarteter Fehler"
+        },
+        "flow_title": "{name}",
+        "step": {
+            "user": {
+                "data": {
+                    "address": "Bluetooth-Adresse"
+                }
+            }
+        }
+    }
+}
